@@ -67,6 +67,8 @@ bool LeggedController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHand
                                                                     leggedInterface_->getCentroidalModelInfo());
 
   // Hardware interface
+  // robot_hw为 ros_control 中的硬件接口，包含机器人的硬件接口，例如关节、IMU等, 用于管理机器人底层的硬件资源，进行数据读取和写入
+
   auto* hybridJointInterface = robot_hw->get<HybridJointInterface>();
   std::vector<std::string> joint_names{
     "leg_l1_joint", "leg_l2_joint", "leg_l3_joint", "leg_l4_joint", "leg_l5_joint",
@@ -334,7 +336,7 @@ void LeggedController::updateStateEstimation(const ros::Time& time, const ros::D
   currentObservation_.time = time.toSec();
   scalar_t yawLast = currentObservation_.state(9);
   currentObservation_.state.head(stateDim_) = rbdConversions_->computeCentroidalStateFromRbdModel(measuredRbdState_);
-  currentObservation_.state(9) = yawLast + angles::shortest_angular_distance(yawLast, currentObservation_.state(9));
+  currentObservation_.state(9) = yawLast + angles::shortest_angular_distance(yawLast, currentObservation_.state(9));  //避免存在角度边界跳变的问题
   currentObservation_.mode = stateEstimate_->getMode();
 
   const auto& reference_manager = leggedInterface_->getSwitchedModelReferenceManagerPtr();

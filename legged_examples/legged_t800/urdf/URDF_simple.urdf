@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="URDF_simple">
+
+  <!-- <link
+    name="world">
+  </link>  
+  <joint name="floating_joint"  type="floating">
+    <origin rpy="0. 0. 0." xyz="0. 0. 0"/>
+    <parent link="world" />
+    <child  link="base_link" />
+  </joint> -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libhunter_bipedal_hw_sim.so">
+      <robotNamespace>/</robotNamespace>
+      <robotParam>legged_robot_description</robotParam>
+      <robotSimType>legged_gazebo/LeggedHWSim</robotSimType>
+    </plugin>
+  </gazebo>
+
+  <gazebo>
+    <plugin filename="libgazebo_ros_p3d.so" name="p3d_base_controller">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>500.0</updateRate>
+      <bodyName>base_link</bodyName>
+      <topicName>ground_truth/state</topicName>
+      <gaussianNoise>0</gaussianNoise>
+      <frameName>world</frameName>
+      <xyzOffsets>0 0 0</xyzOffsets>
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+  </gazebo>
+
+
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.0102396246406552 0.00854684129585948 0.0332945972401038"
+        rpy="0 0 0" />
+      <mass
+        value="46.7274022031895" />
+      <inertia
+        ixx="0.960922201093069"
+        ixy="0.000109319164800288"
+        ixz="0.0492534639952522"
+        iyy="0.760619645967608"
+        iyz="-0.000255202085830921"
+        izz="0.432460212521213" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link
+    name="LHipRoll_link">
+    <inertial>
+      <origin
+        xyz="0.13021928809687 3.33066907387547E-16 -0.00888568839028298"
+        rpy="0 0 0" />
+      <mass
+        value="1.69434323504352" />
+      <inertia
+        ixx="0.00199665914671213"
+        ixy="-2.12485609700659E-19"
+        ixz="0.000146534373681756"
+        iyy="0.00223922130841761"
+        iyz="-2.03786990884474E-19"
+        izz="0.00300599284958996" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipRoll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipRoll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LHipRoll"
+    type="revolute">
+    <origin
+      xyz="-0.122 0.12 -0.16643"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="LHipRoll_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="LHipYaw_link">
+    <inertial>
+      <origin
+        xyz="-0.00269025547603879 1.11022302462516E-16 -0.0633712626847869"
+        rpy="0 0 0" />
+      <mass
+        value="0.744057032961987" />
+      <inertia
+        ixx="0.001591459112424"
+        ixy="-3.36057869246938E-20"
+        ixz="-2.99060228521477E-05"
+        iyy="0.000843060895021706"
+        iyz="-2.60493997069846E-19"
+        izz="0.00181197877707163" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipYaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipYaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LHipYaw"
+    type="revolute">
+    <origin
+      xyz="0.135 0 -0.0029565"
+      rpy="0 0 0" />
+    <parent
+      link="LHipRoll_link" />
+    <child
+      link="LHipYaw_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="LHipPitch_link">
+    <inertial>
+      <origin
+        xyz="-0.0168439785420255 -0.0610000000000015 -0.187953684008689"
+        rpy="0 0 0" />
+      <mass
+        value="3.19020037536046" />
+      <inertia
+        ixx="0.0448919929501429"
+        ixy="-3.2408522403589E-18"
+        ixz="-0.00197401415020948"
+        iyy="0.0410279037536727"
+        iyz="3.00648495155626E-16"
+        izz="0.011057403447688" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipPitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LHipPitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LHipPitch"
+    type="revolute">
+    <origin
+      xyz="0 0.061 -0.101"
+      rpy="0 0 0" />
+    <parent
+      link="LHipYaw_link" />
+    <child
+      link="LHipPitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="LKneePitch_link">
+    <inertial>
+      <origin
+        xyz="0.0349025911908908 -0.0554601382772695 -0.12480829356831"
+        rpy="0 0 0" />
+      <mass
+        value="2.98268257269848" />
+      <inertia
+        ixx="0.0354601069454126"
+        ixy="-9.37663403132723E-08"
+        ixz="4.91066832515987E-05"
+        iyy="0.0365565087036136"
+        iyz="5.61041992304333E-08"
+        izz="0.00327868744565483" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LKneePitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LKneePitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LKneePitch"
+    type="revolute">
+    <origin
+      xyz="0.0001663 -0.0055 -0.38"
+      rpy="0 0 0" />
+    <parent
+      link="LHipPitch_link" />
+    <child
+      link="LKneePitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="LAnklePitch_link">
+    <inertial>
+      <origin
+        xyz="1.52941798114981E-10 -0.0178499999976304 6.68354260824344E-14"
+        rpy="0 0 0" />
+      <mass
+        value="0.259599480305956" />
+      <inertia
+        ixx="3.74006940089086E-05"
+        ixy="-6.7133061834045E-17"
+        ixz="-7.322581253912E-09"
+        iyy="3.7400690644867E-05"
+        iyz="1.5337500190006E-13"
+        izz="5.41332571433322E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LAnklePitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LAnklePitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LAnklePitch"
+    type="revolute">
+    <origin
+      xyz="0.0001663 -0.03765 -0.38"
+      rpy="0 0 0" />
+    <parent
+      link="LKneePitch_link" />
+    <child
+      link="LAnklePitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+
+  <!-- ************* part 6 *************** -->
+  <joint
+    name="LAnkleRoll"
+    type="revolute">
+    <origin
+      xyz="0.01785 -0.01785 0"
+      rpy="0 0 0" />
+    <parent
+      link="LAnklePitch_link" />
+    <child
+      link="LAnkleRoll_link" />
+    <axis
+      xyz="1 0 0.00043762" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="LAnkleRoll_link">
+    <inertial>
+      <origin
+        xyz="-0.00958187853867769 1.68361441710285E-05 -0.0593481777464786"
+        rpy="0 0 0" />
+      <mass
+        value="1.71825340064192" />
+      <inertia
+        ixx="0.0010133350011228"
+        ixy="-9.17868340566451E-07"
+        ixz="2.94368797043498E-05"
+        iyy="0.00420031756931061"
+        iyz="-2.43706567584623E-09"
+        izz="0.00508044717228725" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LAnkleRoll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/LAnkleRoll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+ 
+  <!-- ************* part 7 *************** --> 
+  <joint name="l_foot_fixed_1" type="fixed">
+    <origin xyz="0.13 0 -0.08" rpy="0 0 0" />
+    <parent link="LAnkleRoll_link" />
+    <child link="l_foot_fixed_link1" />
+  </joint>
+  <link name="l_foot_fixed_link1">
+    <inertial>
+      <mass value="0.01" />
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.001"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+
+  <link
+    name="RHipRoll_link">
+    <inertial>
+      <origin
+        xyz="0.13021928809687 1.11022302462516E-16 -0.00888568839028285"
+        rpy="0 0 0" />
+      <mass
+        value="1.69434323504352" />
+      <inertia
+        ixx="0.00199665914671213"
+        ixy="-2.62275640677723E-19"
+        ixz="0.000146534373681757"
+        iyy="0.00223922130841761"
+        iyz="-4.00059824495263E-19"
+        izz="0.00300599284958996" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipRoll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipRoll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RHipRoll"
+    type="revolute">
+    <origin
+      xyz="-0.122 -0.12 -0.16643"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="RHipRoll_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="RHipYaw_link">
+    <inertial>
+      <origin
+        xyz="-0.00269025547603881 1.11022302462516E-16 -0.0633712626847868"
+        rpy="0 0 0" />
+      <mass
+        value="0.744057032961986" />
+      <inertia
+        ixx="0.001591459112424"
+        ixy="-1.51087704206769E-19"
+        ixz="-2.99060228521479E-05"
+        iyy="0.000843060895021705"
+        iyz="3.86097413268211E-19"
+        izz="0.00181197877707162" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipYaw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipYaw_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RHipYaw"
+    type="revolute">
+    <origin
+      xyz="0.135 0 -0.0029565"
+      rpy="0 0 0" />
+    <parent
+      link="RHipRoll_link" />
+    <child
+      link="RHipYaw_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="RHipPitch_link">
+    <inertial>
+      <origin
+        xyz="-0.0168439785420255 0.0610000000000008 -0.187953684008689"
+        rpy="0 0 0" />
+      <mass
+        value="3.19020037536046" />
+      <inertia
+        ixx="0.0448919929501428"
+        ixy="7.29738664808629E-18"
+        ixz="-0.0019740141502095"
+        iyy="0.0410279037536726"
+        iyz="-3.20880601577436E-16"
+        izz="0.011057403447688" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipPitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RHipPitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RHipPitch"
+    type="revolute">
+    <origin
+      xyz="0 -0.061 -0.101"
+      rpy="0 0 0" />
+    <parent
+      link="RHipYaw_link" />
+    <child
+      link="RHipPitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="RKneePitch_link">
+    <inertial>
+      <origin
+        xyz="0.0349032514571332 0.0554602896633632 -0.124807783452119"
+        rpy="0 0 0" />
+      <mass
+        value="2.9826686024511" />
+      <inertia
+        ixx="0.0354601272813468"
+        ixy="9.30925198383976E-08"
+        ixz="4.90193351948076E-05"
+        iyy="0.0365564319398728"
+        iyz="-3.73532507216229E-08"
+        izz="0.00327857825019684" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RKneePitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RKneePitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RKneePitch"
+    type="revolute">
+    <origin
+      xyz="0.0001663 0.0055 -0.38"
+      rpy="0 0 0" />
+    <parent
+      link="RHipPitch_link" />
+    <child
+      link="RKneePitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="RAnklePitch_link">
+    <inertial>
+      <origin
+        xyz="1.52941798114981E-10 0.0178499999976304 6.67244037799719E-14"
+        rpy="0 0 0" />
+      <mass
+        value="0.259599480305955" />
+      <inertia
+        ixx="3.74006940089085E-05"
+        ixy="-6.71086737132119E-17"
+        ixz="-7.3225812539616E-09"
+        iyy="3.7400690644867E-05"
+        iyz="1.53374995512301E-13"
+        izz="5.41332571433322E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RAnklePitch_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RAnklePitch_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RAnklePitch"
+    type="revolute">
+    <origin
+      xyz="0.0001663 0.03765 -0.38"
+      rpy="0 0 0" />
+    <parent
+      link="RKneePitch_link" />
+    <child
+      link="RAnklePitch_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+  <link
+    name="RAnkleRoll_link">
+    <inertial>
+      <origin
+        xyz="-0.00958187755410376 -1.68363041334052E-05 -0.0593481795417476"
+        rpy="0 0 0" />
+      <mass
+        value="1.71825338964616" />
+      <inertia
+        ixx="0.00101333505443478"
+        ixy="9.17845761841393E-07"
+        ixz="2.94368873886114E-05"
+        iyy="0.00420031763194787"
+        iyz="2.43882658005261E-09"
+        izz="0.0050804471685631" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RAnkleRoll_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://URDF_simple/meshes/RAnkleRoll_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RAnkleRoll"
+    type="revolute">
+    <origin
+      xyz="0.01785 0.01785 0"
+      rpy="0 0 0" />
+    <parent
+      link="RAnklePitch_link" />
+    <child
+      link="RAnkleRoll_link" />
+    <axis
+      xyz="1 0 0.00043762" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1000"
+      velocity="1000" />
+  </joint>
+ 
+  <!-- ************* part 7 *************** --> 
+  <joint name="r_foot_fixed_1" type="fixed">
+    <origin xyz="0.13 0 -0.08" rpy="0 0 0" />
+    <parent link="RAnkleRoll_link" />
+    <child link="r_foot_fixed_link1" />
+  </joint>
+  <link name="r_foot_fixed_link1">
+    <inertial>
+      <mass value="0.01" />
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.001"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+
+
+</robot>

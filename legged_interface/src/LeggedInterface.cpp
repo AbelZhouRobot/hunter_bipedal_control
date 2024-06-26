@@ -138,9 +138,7 @@ void LeggedInterface::setupOptimalControlProblem(const std::string& taskFile, co
       problemPtr_->softConstraintPtr->add(footName + "_frictionCone",
                                           getFrictionConeSoftConstraint(i, frictionCoefficient, barrierPenaltyConfig));
     }
-    problemPtr_->equalityConstraintPtr->add(
-        footName + "_zeroForce",
-        std::unique_ptr<StateInputConstraint>(new ZeroForceConstraint(*referenceManagerPtr_, i, centroidalModelInfo_)));
+    problemPtr_->equalityConstraintPtr->add(footName + "_zeroForce", std::unique_ptr<StateInputConstraint>(new ZeroForceConstraint(*referenceManagerPtr_, i, centroidalModelInfo_)));
     problemPtr_->equalityConstraintPtr->add(footName + "_zeroVelocity", getZeroVelocityConstraint(*eeKinematicsPtr, i));
     problemPtr_->equalityConstraintPtr->add(footName + "_normalVelocity",
                                             std::unique_ptr<StateInputConstraint>(new NormalVelocityConstraintCppAd(

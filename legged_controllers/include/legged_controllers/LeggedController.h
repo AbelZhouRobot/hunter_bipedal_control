@@ -35,119 +35,119 @@ at www.bridgedp.com.
 
 namespace legged
 {
-using namespace ocs2;
-using namespace legged_robot;
+  using namespace ocs2;
+  using namespace legged_robot;
 
-class LeggedController
-  : public controller_interface::MultiInterfaceController<HybridJointInterface, hardware_interface::ImuSensorInterface,
-                                                          ContactSensorInterface>
-{
-public:
-  LeggedController() = default;
-  ~LeggedController() override;
-  bool init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& controller_nh) override;
-  void update(const ros::Time& time, const ros::Duration& period) override;
-  void starting(const ros::Time& time) override;
-  void stopping(const ros::Time& /*time*/) override
+  class LeggedController
+      : public controller_interface::MultiInterfaceController<HybridJointInterface, hardware_interface::ImuSensorInterface,
+                                                              ContactSensorInterface>
   {
-    mpcRunning_ = false;
-  }
+  public:
+    LeggedController() = default;
+    ~LeggedController() override;
+    bool init(hardware_interface::RobotHW *robot_hw, ros::NodeHandle &controller_nh) override;
+    void update(const ros::Time &time, const ros::Duration &period) override;
+    void starting(const ros::Time &time) override;
+    void stopping(const ros::Time & /*time*/) override
+    {
+      mpcRunning_ = false;
+    }
 
-protected:
-  virtual void updateStateEstimation(const ros::Time& time, const ros::Duration& period);
+  protected:
+    virtual void updateStateEstimation(const ros::Time &time, const ros::Duration &period);
 
-  virtual void setupLeggedInterface(const std::string& taskFile, const std::string& urdfFile,
-                                    const std::string& referenceFile, bool verbose);
-  virtual void setupMpc();
-  virtual void setupMrt();
-  virtual void setupStateEstimate(const std::string& taskFile, bool verbose);
+    virtual void setupLeggedInterface(const std::string &taskFile, const std::string &urdfFile,
+                                      const std::string &referenceFile, bool verbose);
+    virtual void setupMpc();
+    virtual void setupMrt();
+    virtual void setupStateEstimate(const std::string &taskFile, bool verbose);
 
-  void dynamicParamCallback(legged_controllers::TutorialsConfig& config, uint32_t level);
+    void dynamicParamCallback(legged_controllers::TutorialsConfig &config, uint32_t level);
 
-  void setWalkCallback(const std_msgs::Float32::ConstPtr& msg);
-  void loadControllerCallback(const std_msgs::Float32::ConstPtr& msg);
-  void EmergencyStopCallback(const std_msgs::Float32::ConstPtr& msg);
-  void ResetTargetCallback(const std_msgs::Float32::ConstPtr& msg);
+    void setWalkCallback(const std_msgs::Float32::ConstPtr &msg);
+    void loadControllerCallback(const std_msgs::Float32::ConstPtr &msg);
+    void EmergencyStopCallback(const std_msgs::Float32::ConstPtr &msg);
+    void ResetTargetCallback(const std_msgs::Float32::ConstPtr &msg);
 
-  void resetMPC();
-  void RetrievingParameters();
-  void ModeSubscribe();
+    void resetMPC();
+    void RetrievingParameters();
+    void ModeSubscribe();
 
-  // Interface
-  std::shared_ptr<LeggedInterface> leggedInterface_;
-  std::shared_ptr<PinocchioEndEffectorKinematics> eeKinematicsPtr_;
-  std::vector<HybridJointHandle> hybridJointHandles_;
-  std::vector<ContactSensorHandle> contactHandles_;
-  hardware_interface::ImuSensorHandle imuSensorHandle_;
+    // Interface
+    std::shared_ptr<LeggedInterface> leggedInterface_;                // 管理mpc、步态规划、足部规划等ocs2参数设置的接口
+    std::shared_ptr<PinocchioEndEffectorKinematics> eeKinematicsPtr_; // 基于Pinocchio的末端运动学
+    std::vector<HybridJointHandle> hybridJointHandles_;               // 获取关节数据
+    std::vector<ContactSensorHandle> contactHandles_;                 // 获取足底力
+    hardware_interface::ImuSensorHandle imuSensorHandle_;             // 获取imu数据
 
-  // State Estimation
-  SystemObservation currentObservation_;
-  vector_t measuredRbdState_;
-  std::shared_ptr<StateEstimateBase> stateEstimate_;
-  std::shared_ptr<CentroidalModelRbdConversions> rbdConversions_;
+    // State Estimation
+    SystemObservation currentObservation_;                          // 基于ocs2质心模型的状态接口
+    vector_t measuredRbdState_;                                     // 状态估计模块的输出接口
+    std::shared_ptr<StateEstimateBase> stateEstimate_;              // 状态估计基类
+    std::shared_ptr<CentroidalModelRbdConversions> rbdConversions_; // 质心模型和机器状态转换？
 
-  // Whole Body Control
-  std::shared_ptr<WbcBase> wbc_;
-  std::shared_ptr<SafetyChecker> safetyChecker_;
+    // Whole Body Control
+    std::shared_ptr<WbcBase> wbc_;
+    std::shared_ptr<SafetyChecker> safetyChecker_;
 
-  // Nonlinear MPC
-  std::shared_ptr<MPC_BASE> mpc_;
-  std::shared_ptr<MPC_MRT_Interface> mpcMrtInterface_;
+    // Nonlinear MPC
+    std::shared_ptr<MPC_BASE> mpc_;
+    std::shared_ptr<MPC_MRT_Interface> mpcMrtInterface_;
 
-  // Visualization
-  std::shared_ptr<legged::LeggedRobotVisualizer> robotVisualizer_;
-  std::shared_ptr<LeggedSelfCollisionVisualization> selfCollisionVisualization_;
-  ros::Publisher observationPublisher_;
+    // Visualization
+    std::shared_ptr<legged::LeggedRobotVisualizer> robotVisualizer_;
+    std::shared_ptr<LeggedSelfCollisionVisualization> selfCollisionVisualization_;
+    ros::Publisher observationPublisher_;
 
-  // Emergency stop
-  ros::Subscriber subSetWalk_;
-  ros::Subscriber subLoadcontroller_;
-  ros::Subscriber subEmgstop_;
-  ros::Subscriber subResetTarget_;
+    // Emergency stop
+    ros::Subscriber subSetWalk_;
+    ros::Subscriber subLoadcontroller_;
+    ros::Subscriber subEmgstop_;
+    ros::Subscriber subResetTarget_;
 
-  ros::Duration startingTime_;
+    ros::Duration startingTime_;
 
-  std::unique_ptr<dynamic_reconfigure::Server<legged_controllers::TutorialsConfig>> serverPtr_;
+    std::unique_ptr<dynamic_reconfigure::Server<legged_controllers::TutorialsConfig>> serverPtr_;
 
-private:
-  std::thread mpcThread_;
-  std::atomic_bool controllerRunning_{}, mpcRunning_{};
-  benchmark::RepeatedTimer mpcTimer_;
-  benchmark::RepeatedTimer wbcTimer_;
+  private:
+    std::thread mpcThread_;
+    std::atomic_bool controllerRunning_{}, mpcRunning_{};
+    benchmark::RepeatedTimer mpcTimer_;
+    benchmark::RepeatedTimer wbcTimer_;
 
-  bool loadControllerFlag_{ false };
-  bool setWalkFlag_{ false };
-  bool emergencyStopFlag_{ false };
-  std::atomic_bool firstStartMpc_{ false };
+    bool loadControllerFlag_{false};
+    bool setWalkFlag_{false};
+    bool emergencyStopFlag_{false};
+    std::atomic_bool firstStartMpc_{false};
 
-  // Initializing based on the number of joints
-  vector_t posDes_ = vector_t::Zero(10);
-  vector_t velDes_ = vector_t::Zero(10);
-  vector_t posDesOutput_ = vector_t::Zero(10);
-  vector_t velDesOutput_ = vector_t::Zero(10);
+    // Initializing based on the number of joints
+    vector_t posDes_ = vector_t::Zero(10);
+    vector_t velDes_ = vector_t::Zero(10);
+    vector_t posDesOutput_ = vector_t::Zero(10);
+    vector_t velDesOutput_ = vector_t::Zero(10);
 
-  size_t stateDim_{ 0 };
-  size_t inputDim_{ 0 };
-  size_t jointDim_{ 0 };
-  size_t footDim_{ 0 };
-  size_t gencoordDim_{ 0 };
-  size_t dofPerLeg_{ 0 };
+    size_t stateDim_{0};
+    size_t inputDim_{0};
+    size_t jointDim_{0};
+    size_t footDim_{0};
+    size_t gencoordDim_{0};
+    size_t dofPerLeg_{0};
 
-  std::atomic<scalar_t> kp_position{ 0 };
-  std::atomic<scalar_t> kd_position{ 0 };
-  std::atomic<scalar_t> kp_big_stance{ 0 };
-  std::atomic<scalar_t> kp_big_swing{ 0 };
-  std::atomic<scalar_t> kp_small_stance{ 0 };
-  std::atomic<scalar_t> kp_small_swing{ 0 };
-  std::atomic<scalar_t> kd_small{ 0 };
-  std::atomic<scalar_t> kd_big{ 0 };
-  std::atomic<scalar_t> kp_feet_stance{ 0 };
-  std::atomic<scalar_t> kp_feet_swing{ 0 };
-  std::atomic<scalar_t> kd_feet{ 0 };
+    std::atomic<scalar_t> kp_position{0};
+    std::atomic<scalar_t> kd_position{0};
+    std::atomic<scalar_t> kp_big_stance{0};
+    std::atomic<scalar_t> kp_big_swing{0};
+    std::atomic<scalar_t> kp_small_stance{0};
+    std::atomic<scalar_t> kp_small_swing{0};
+    std::atomic<scalar_t> kd_small{0};
+    std::atomic<scalar_t> kd_big{0};
+    std::atomic<scalar_t> kp_feet_stance{0};
+    std::atomic<scalar_t> kp_feet_swing{0};
+    std::atomic<scalar_t> kd_feet{0};
 
-  vector_t defalutJointPos_;
+    vector_t defalutJointPos_;
 
-  InverseKinematics inverseKinematics_;
-};
+    InverseKinematics inverseKinematics_;
+  };
 
-}  // namespace legged
+} // namespace legged

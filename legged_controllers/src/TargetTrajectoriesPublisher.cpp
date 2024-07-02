@@ -19,29 +19,29 @@ using namespace legged;
 
 namespace
 {
-scalar_t TARGET_DISPLACEMENT_VELOCITY;
-scalar_t TARGET_ROTATION_VELOCITY;
-scalar_t COM_HEIGHT;
-vector_t DEFAULT_JOINT_STATE(10);
-scalar_t TIME_TO_TARGET;
-}  // namespace
+  scalar_t TARGET_DISPLACEMENT_VELOCITY;
+  scalar_t TARGET_ROTATION_VELOCITY;
+  scalar_t COM_HEIGHT;
+  vector_t DEFAULT_JOINT_STATE(10);
+  scalar_t TIME_TO_TARGET;
+} // namespace
 
-scalar_t estimateTimeToTarget(const vector_t& desiredBaseDisplacement)
+scalar_t estimateTimeToTarget(const vector_t &desiredBaseDisplacement)
 {
-  const scalar_t& dx = desiredBaseDisplacement(0);
-  const scalar_t& dy = desiredBaseDisplacement(1);
-  const scalar_t& dyaw = desiredBaseDisplacement(3);
+  const scalar_t &dx = desiredBaseDisplacement(0);
+  const scalar_t &dy = desiredBaseDisplacement(1);
+  const scalar_t &dyaw = desiredBaseDisplacement(3);
   const scalar_t rotationTime = std::abs(dyaw) / TARGET_ROTATION_VELOCITY;
   const scalar_t displacement = std::sqrt(dx * dx + dy * dy);
   const scalar_t displacementTime = displacement / TARGET_DISPLACEMENT_VELOCITY;
   return std::max(rotationTime, displacementTime);
 }
 
-TargetTrajectories targetPoseToTargetTrajectories(const vector_t& targetPose, const SystemObservation& observation,
-                                                  const scalar_t& targetReachingTime)
+TargetTrajectories targetPoseToTargetTrajectories(const vector_t &targetPose, const SystemObservation &observation,
+                                                  const scalar_t &targetReachingTime)
 {
   // desired time trajectory
-  const scalar_array_t timeTrajectory{ observation.time, targetReachingTime };
+  const scalar_array_t timeTrajectory{observation.time, targetReachingTime};
 
   // desired state trajectory
   vector_t currentPose = observation.state.segment<6>(6);
@@ -55,14 +55,14 @@ TargetTrajectories targetPoseToTargetTrajectories(const vector_t& targetPose, co
   stateTrajectory[1] << vector_t::Zero(6), targetPose, DEFAULT_JOINT_STATE;
 
   const vector_array_t inputTrajectory(2, vector_t::Zero(observation.input.size()));
-  return { timeTrajectory, stateTrajectory, inputTrajectory };
+  return {timeTrajectory, stateTrajectory, inputTrajectory};
 }
 
-TargetTrajectories bodyRotationToTargetTrajectories(const vector_t& targetPose, const SystemObservation& observation,
-                                                    const scalar_t& targetReachingTime)
+TargetTrajectories bodyRotationToTargetTrajectories(const vector_t &targetPose, const SystemObservation &observation,
+                                                    const scalar_t &targetReachingTime)
 {
   // desired time trajectory
-  const scalar_array_t timeTrajectory{ observation.time, targetReachingTime };
+  const scalar_array_t timeTrajectory{observation.time, targetReachingTime};
 
   // desired state trajectory
   vector_t currentPose = observation.state.segment<6>(6);
@@ -77,13 +77,14 @@ TargetTrajectories bodyRotationToTargetTrajectories(const vector_t& targetPose, 
   stateTrajectory[1] << vector_t::Zero(6), targetPose, DEFAULT_JOINT_STATE;
 
   const vector_array_t inputTrajectory(2, vector_t::Zero(observation.input.size()));
-  return { timeTrajectory, stateTrajectory, inputTrajectory };
+  return {timeTrajectory, stateTrajectory, inputTrajectory};
 }
 
-TargetTrajectories goalToTargetTrajectories(const vector_t& goal, const SystemObservation& observation)
+TargetTrajectories goalToTargetTrajectories(const vector_t &goal, const SystemObservation &observation)
 {
   const vector_t currentPose = observation.state.segment<6>(6);
-  const vector_t targetPose = [&]() {
+  const vector_t targetPose = [&]()
+  {
     vector_t target(6);
     target(0) = goal(0);
     target(1) = goal(1);
@@ -99,7 +100,7 @@ TargetTrajectories goalToTargetTrajectories(const vector_t& goal, const SystemOb
   return targetPoseToTargetTrajectories(targetPose, observation, targetReachingTime);
 }
 
-TargetTrajectories cmdVelToTargetTrajectories(const vector_t& cmdVel, const SystemObservation& observation)
+TargetTrajectories cmdVelToTargetTrajectories(const vector_t &cmdVel, const SystemObservation &observation)
 {
   const vector_t currentPose = observation.state.segment<6>(6);
   const Eigen::Matrix<scalar_t, 3, 1> zyx = currentPose.tail(3);
@@ -110,7 +111,8 @@ TargetTrajectories cmdVelToTargetTrajectories(const vector_t& cmdVel, const Syst
     cmdVelRot(0) = 0;
   else if (fabs(cmdVelRot(1)) < 0.06)
     cmdVelRot(1) = 0;
-  const vector_t targetPose = [&]() {
+  const vector_t targetPose = [&]()
+  {
     vector_t target(6);
     target(0) = currentPose(0) + cmdVelRot(0) * timeToTarget;
     target(1) = currentPose(1) + cmdVelRot(1) * timeToTarget;
@@ -129,11 +131,12 @@ TargetTrajectories cmdVelToTargetTrajectories(const vector_t& cmdVel, const Syst
   return trajectories;
 }
 
-TargetTrajectories cmdPosToTargetTrajectories(const vector_t& cmdPos, const SystemObservation& observation)
+TargetTrajectories cmdPosToTargetTrajectories(const vector_t &cmdPos, const SystemObservation &observation)
 {
   const vector_t currentPose = observation.state.segment<6>(6);
   const scalar_t timeToTarget = TIME_TO_TARGET;
-  const vector_t targetPose = [&]() {
+  const vector_t targetPose = [&]()
+  {
     vector_t target(6);
     target(0) = currentPose(0);
     target(1) = currentPose(1);
@@ -150,7 +153,7 @@ TargetTrajectories cmdPosToTargetTrajectories(const vector_t& cmdPos, const Syst
   return trajectories;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   const std::string robotName = "legged_robot";
 

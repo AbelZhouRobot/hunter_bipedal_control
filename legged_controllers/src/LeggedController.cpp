@@ -147,8 +147,13 @@ namespace legged
   void LeggedController::update(const ros::Time &time, const ros::Duration &period)
   {
     const ros::Time shifted_time = time - startingTime_;
+
     // State Estimate
     updateStateEstimation(shifted_time, period);
+    /*
+    获取measuredRbdState_（状态估计输出）  currentObservation_（centroidal model的状态）
+    暂时调用了 reference接口？
+    */
 
     // Update the current state of the system
     mpcMrtInterface_->setCurrentObservation(currentObservation_);
@@ -340,22 +345,18 @@ namespace legged
     stateEstimate_->updateImu(quat, angularVel, linearAccel, orientationCovariance, angularVelCovariance,
                               linearAccelCovariance);
     measuredRbdState_ = stateEstimate_->update(time, period);
-
+    /*
+    状态估计的数据，由浮动基 欧拉角ZYX， 位置XYZ， 关节角度， 浮动基角速度， 浮动基线速度， 关节角速度 组成， 大小为 generalizedCoordinatesNum * 2
+    measuredRbdState_ = [oulerZYX, posXYZ, jntPos, angVelXYZ?, linVelXYZ, jntVel]
+    */
     std::cout << "measuredRbdState_.state is:" << "\n"
               << measuredRbdState_.head(6).transpose() << std::endl
               << measuredRbdState_.segment(6, 10).transpose() << std::endl
               << measuredRbdState_.segment(16, 6).transpose() << std::endl
               << measuredRbdState_.segment(22, 10).transpose() << std::endl;
-    /*
-    状态估计的数据，由浮动基 欧拉角ZYX， 位置XYZ， 关节角度，浮动基角速度，浮动基线速度， 关节角速度 组成， 大小为 generalizedCoordinatesNum * 2
-    measuredRbdState_ = [oulerZYX, posXYZ, jntPos, angVelXYZ?, linVelXYZ, jntVel]
-    */
-    currentObservation_.time = time.toSec();
-    scalar_t yawLast = currentObservation_.state(9);
-    currentObservation_.state.head(stateDim_) = rbdConversions_->computeCentroidalStateFromRbdModel(measuredRbdState_);
 
     /*
-    CentroidalState   
+    CentroidalState
     ocs2提供的质心动力学模型的状态数据，由广义角动量 + 浮动基位置xyz + 浮动基欧拉角ZYX + 关节角度组成， 大小为 generalizedCoordinatesNum + 6
     这里的广义角动量 进行了 /mass的归一化操作，其原理是啥？
     currentObservation_.state
@@ -365,9 +366,17 @@ namespace legged
               << currentObservation_.state.segment(6, 6).transpose() << std::endl
               << currentObservation_.state.tail(jointDim_).transpose() << std::endl;
 
+    currentObservation_.time = time.toSec();
+    scalar_t yawLast = currentObservation_.state(9);
+    currentObservation_.state.head(stateDim_) = rbdConversions_->computeCentroidalStateFromRbdModel(measuredRbdState_);
     currentObservation_.state(9) = yawLast + angles::shortest_angular_distance(yawLast, currentObservation_.state(9)); // 避免存在角度边界跳变的问题
     currentObservation_.mode = stateEstimate_->getMode();
 
+    /*
+    应该是调ocs2的 步态/轨迹 ？规划相关接口
+    std::shared_ptr<SwitchedModelReferenceManager> referenceManagerPtr_;
+    cons类型局部变量？意义何在？
+    */
     const auto &reference_manager = leggedInterface_->getSwitchedModelReferenceManagerPtr();
     reference_manager->getSwingTrajectoryPlanner()->setBodyVelWorld(stateEstimate_->getBodyVelWorld());
     reference_manager->setEstContactFlag(cmdContactFlag);
@@ -414,7 +423,12 @@ namespace legged
     auto rosReferenceManagerPtr =
         std::make_shared<RosReferenceManager>(robotName, leggedInterface_->getReferenceManagerPtr());
     rosReferenceManagerPtr->subscribe(nh);
+
     mpc_->getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);
+
+    // const auto slover_ptr = mpc_->getSolverPtr();
+    // getSolverPtr返回的是 mpc_ 对象内部“私有求解器“的裸指针，
+
     observationPublisher_ = nh.advertise<ocs2_msgs::mpc_observation>(robotName + "_mpc_observation", 1);
   }
 

@@ -95,7 +95,7 @@ public:
     };
 
     changeLimit_ << 0.1, 0.05, 0.04, 0.3;
-    lastVel_ << 0, 0, 0, 0;
+    lastVel_ << 0.0, 0, 0, 0;
 
     // cmd_vel subscriber
     auto cmdVelCallback = [this](const geometry_msgs::Twist::ConstPtr& msg) {
@@ -124,7 +124,9 @@ public:
       filter_msg.linear.z = lastVel_[2];
       filter_msg.angular.z = lastVel_[3];
 
-      cmdVelfilteredpub_.publish(filter_msg);
+      // cmdVelfilteredpub_.publish(filter_msg);
+      
+    // lastVel_ << 0.0, 0, 0, 0;
 
       const auto trajectories = cmdVelToTargetTrajectories_(lastVel_, latestObservation_);
       targetTrajectoriesPublisher_->publishTargetTrajectories(trajectories);

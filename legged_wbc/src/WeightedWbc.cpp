@@ -56,7 +56,7 @@ vector_t WeightedWbc::update(const vector_t& stateDesired, const vector_t& input
 
   if (!qpProblem.isSolved())
   {
-    std::cout << "ERROR: WeightWBC Not Solved!!!" << std::endl;
+    // std::cout << "ERROR: WeightWBC Not Solved!!!" << std::endl;
     if (last_qpSol.size() > 0)
       qpSol = last_qpSol;
   }

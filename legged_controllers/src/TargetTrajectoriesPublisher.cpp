@@ -26,6 +26,10 @@ namespace
   scalar_t TIME_TO_TARGET;
 } // namespace
 
+/*评估当前状态运动到目标状态需要的最短时间
+  1. 移动到目标位置需要的时间 time_pos
+  2. 移动到目标姿态需要的时间 time_roa
+*/
 scalar_t estimateTimeToTarget(const vector_t &desiredBaseDisplacement)
 {
   const scalar_t &dx = desiredBaseDisplacement(0);
@@ -89,9 +93,9 @@ TargetTrajectories goalToTargetTrajectories(const vector_t &goal, const SystemOb
     target(0) = goal(0);
     target(1) = goal(1);
     scalar_t dz = COM_HEIGHT - currentPose(2);
-    dz = dz > 0 ? fmin(dz, changeLimit_[2]) : fmax(dz, -changeLimit_[2]);
-    target(2) = currentPose(2) + dz;
-    target(3) = goal(3);
+    dz = dz > 0 ? fmin(dz, changeLimit_[2]) : fmax(dz, -changeLimit_[2]); //计算当前高度与默认的偏差值
+    target(2) = currentPose(2) + dz;                                      //恢复到默认质心高度
+    target(3) = goal(3);                                                  //期望yaw角
     target(4) = 0;
     target(5) = 0;
     return target;
@@ -106,7 +110,7 @@ TargetTrajectories cmdVelToTargetTrajectories(const vector_t &cmdVel, const Syst
   const Eigen::Matrix<scalar_t, 3, 1> zyx = currentPose.tail(3);
   vector_t cmdVelRot = getRotationMatrixFromZyxEulerAngles(zyx) * cmdVel.head(3);
   const scalar_t timeToTarget = TIME_TO_TARGET;
-  scalar_t z_change = cmdVelRot(3) * timeToTarget;
+  scalar_t z_change = cmdVelRot(3) * timeToTarget;  //? nouse
   if (fabs(cmdVelRot(0)) < 0.06)
     cmdVelRot(0) = 0;
   else if (fabs(cmdVelRot(1)) < 0.06)

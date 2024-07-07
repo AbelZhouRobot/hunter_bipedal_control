@@ -175,8 +175,8 @@ vector5_t InverseKinematics::computeRotationIK(vector_t init_q, int leg, matrix3
     while (true)
     {
       pinocchio::computeFrameJacobian(model, data, init_q, FRAME_ID, pinocchio::LOCAL, Jac);
-      Jac_i = Jac.block<3, 5>(3, 6 + index);
-      Jac_linear_i = Jac.block<3, 5>(0, 6 + index);
+      Jac_i = Jac.block<3, 5>(3, 6 + index);          //roatation
+      Jac_linear_i = Jac.block<3, 5>(0, 6 + index);   //linear
       matrix_t null_space = Jac_linear_i.fullPivLu().kernel();
 
       qr_.compute(Jac_i * null_space);

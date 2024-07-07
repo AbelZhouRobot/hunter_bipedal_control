@@ -130,6 +130,10 @@ namespace legged
                                            {currentObservation_.input});
 
     mpcMrtInterface_->getReferenceManager().setTargetTrajectories(target_trajectories);
+    /*mpcMrtInterface_->getReferenceManager
+          return mpc_.getSolverPtr()->getReferenceManager();
+      line452: mpc_->getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);          
+     */
 
     mpcRunning_ = false;
 
@@ -163,10 +167,13 @@ namespace legged
 
     size_t plannedMode = 0;
     bool mpc_updated_ = false;
+    std::cout << "################## firstStartMpc_ is: "<<firstStartMpc_<<std::endl;
     if (firstStartMpc_)
     {
       // Load the latest MPC policy
+      std::cout << "mpcMrtInterface_->updatePolicy()" <<std::endl;
       mpcMrtInterface_->updatePolicy();
+      std::cout << "mpcMrtInterface_->evaluatePolicy()" <<std::endl;
       mpcMrtInterface_->evaluatePolicy(currentObservation_.time, currentObservation_.state, optimizedState,
                                        optimizedInput, plannedMode);
       currentObservation_.input = optimizedInput;
@@ -349,11 +356,11 @@ namespace legged
     状态估计的数据，由浮动基 欧拉角ZYX， 位置XYZ， 关节角度， 浮动基角速度， 浮动基线速度， 关节角速度 组成， 大小为 generalizedCoordinatesNum * 2
     measuredRbdState_ = [oulerZYX, posXYZ, jntPos, angVelXYZ?, linVelXYZ, jntVel]
     */
-    std::cout << "measuredRbdState_.state is:" << "\n"
-              << measuredRbdState_.head(6).transpose() << std::endl
-              << measuredRbdState_.segment(6, 10).transpose() << std::endl
-              << measuredRbdState_.segment(16, 6).transpose() << std::endl
-              << measuredRbdState_.segment(22, 10).transpose() << std::endl;
+    // std::cout << "measuredRbdState_.state is:" << "\n"
+    //           << measuredRbdState_.head(6).transpose() << std::endl
+    //           << measuredRbdState_.segment(6, 10).transpose() << std::endl
+    //           << measuredRbdState_.segment(16, 6).transpose() << std::endl
+    //           << measuredRbdState_.segment(22, 10).transpose() << std::endl;
 
     /*
     CentroidalState
@@ -361,10 +368,10 @@ namespace legged
     这里的广义角动量 进行了 /mass的归一化操作，其原理是啥？
     currentObservation_.state
     */
-    std::cout << "currentObservation_.state is:" << "\n"
-              << currentObservation_.state.head(6).transpose() << std::endl
-              << currentObservation_.state.segment(6, 6).transpose() << std::endl
-              << currentObservation_.state.tail(jointDim_).transpose() << std::endl;
+    // std::cout << "currentObservation_.state is:" << "\n"
+    //           << currentObservation_.state.head(6).transpose() << std::endl
+    //           << currentObservation_.state.segment(6, 6).transpose() << std::endl
+    //           << currentObservation_.state.tail(jointDim_).transpose() << std::endl;
 
     currentObservation_.time = time.toSec();
     scalar_t yawLast = currentObservation_.state(9);
@@ -420,9 +427,27 @@ namespace legged
 
     const std::string robotName = "legged_robot";
     ros::NodeHandle nh;
+
+    /*
+    ################################ LeggedInterface.cpp ################################
+    leggedInterface_->getReferenceManagerPtr(){
+        return referenceManagerPtr_;
+         { std::shared_ptr<SwitchedModelReferenceManager> referenceManagerPtr_
+         referenceManagerPtr_ = std::make_shared<SwitchedModelReferenceManager>
+            (loadGaitSchedule(referenceFile, verbose),
+             std::move(swingTrajectoryPlanner),
+             *pinocchioInterfacePtr_, centroidalModelInfo_); 
+          }
+    }
+    */
     auto rosReferenceManagerPtr =
         std::make_shared<RosReferenceManager>(robotName, leggedInterface_->getReferenceManagerPtr());
-    rosReferenceManagerPtr->subscribe(nh);
+
+    /*接受targetTrajectories 和modeSchedular， 这里是通过topic收
+     *rosReferenceManagerPtr:  rosnode  && SwitchedModelReferenceManager(<-ReferenceManager <-ReferenceManagerInterface)
+     问题1： ros的topic会一直接收吗？
+    */
+    rosReferenceManagerPtr->subscribe(nh); 
 
     mpc_->getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);
 
@@ -438,8 +463,7 @@ namespace legged
     mpcMrtInterface_->initRollout(&leggedInterface_->getRollout());
     mpcTimer_.reset();
     controllerRunning_ = true;
-    mpcThread_ = std::thread([&]()
-                             {
+    mpcThread_ = std::thread([&](){
     while (controllerRunning_)
     {
       try

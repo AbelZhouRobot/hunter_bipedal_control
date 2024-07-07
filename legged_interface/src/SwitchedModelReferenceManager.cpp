@@ -64,54 +64,53 @@ ModeSequenceTemplate trot(trot_times, trot_modes);
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-SwitchedModelReferenceManager::SwitchedModelReferenceManager(std::shared_ptr<GaitSchedule> gaitSchedulePtr,
-                                                             std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
-                                                             PinocchioInterface pinocchioInterface,
-                                                             CentroidalModelInfo info)
-  : ReferenceManager(TargetTrajectories(), ModeSchedule())
-  , gaitSchedulePtr_(std::move(gaitSchedulePtr))
-  , swingTrajectoryPtr_(std::move(swingTrajectoryPtr))
-  , latestStancePosition_(std::move(feet_array_t<vector3_t>{}))
-  , feetBiasBuffer_(std::move(feet_array_t<vector3_t>{}))
-  , estContactFlagBuffer_(std::move(contact_flag_t{}))
-  , pinocchioInterface_(std::move(pinocchioInterface))
-  , info_(std::move(info))
-  , velCmdInBuf_(std::move(vector_t::Zero(6)))
-  , velCmdOutBuf_(std::move(vector_t::Zero(6)))
+SwitchedModelReferenceManager::SwitchedModelReferenceManager(
+    std::shared_ptr<GaitSchedule> gaitSchedulePtr,
+    std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr,
+    PinocchioInterface pinocchioInterface,
+    CentroidalModelInfo info)
+: ReferenceManager(TargetTrajectories(), ModeSchedule()) // 调用基类的构造函数
+, gaitSchedulePtr_(std::move(gaitSchedulePtr)) // 使用右值引用移动语义初始化成员变量
+, swingTrajectoryPtr_(std::move(swingTrajectoryPtr))
+, latestStancePosition_(std::move(feet_array_t<vector3_t>{})) // 初始化位置信息
+, feetBiasBuffer_(std::move(feet_array_t<vector3_t>{}))
+, estContactFlagBuffer_(std::move(contact_flag_t{}))
+, pinocchioInterface_(std::move(pinocchioInterface))
+, info_(std::move(info))
+, velCmdInBuf_(std::move(vector_t::Zero(6))) // 初始化速度命令缓冲区
+, velCmdOutBuf_(std::move(vector_t::Zero(6)))
 {
-  pitch_ = 0.0;
-  roll_ = 0.0;
-  feet_array_t<vector3_t> feet_bias{};
+    pitch_ = 0.0; // 初始化俯仰角
+    roll_ = 0.0; // 初始化翻滚角
+    feet_array_t<vector3_t> feet_bias{}; // 创建一个临时变量
+    auto nh = ros::NodeHandle(); // 创建ROS节点句柄
+    earlyLateContactMsg_.data.resize(info_.numThreeDofContacts, 0); // 初始化接触消息数据
+    // cmd_vel subscriber
+    auto cmdVelCallback = [this](const geometry_msgs::Twist::ConstPtr& msg) { // 创建回调函数
+        vector_t cmdVel = vector_t::Zero(6); // 初始化速度命令向量
+        cmdVel[0] = msg->linear.x; // 从ROS消息中提取线性速度
+        cmdVel[1] = msg->linear.y;
+        cmdVel[2] = msg->linear.z;
+        cmdVel[3] = msg->angular.z; // 提取角速度
+        velCmdInBuf_.setBuffer(cmdVel); // 设置输入缓冲区
+        velCmdOutBuf_.setBuffer(cmdVel); // 设置输出缓冲区
+    };
+    velCmdSub_ = nh.subscribe<geometry_msgs::Twist>("/cmd_vel_filtered", 1, cmdVelCallback); // 订阅cmd_vel话题
 
-  auto nh = ros::NodeHandle();
+    auto gait_type_callback = [this](const std_msgs::Int32::ConstPtr& msg) { gaitType_ = msg->data; }; // 另一个回调函数
+    gaitTypeSub_ = nh.subscribe<std_msgs::Int32>("/gait_type", 1, gait_type_callback); // 订阅gait_type话题
 
-  earlyLateContactMsg_.data.resize(info_.numThreeDofContacts, 0);
+    std::string referenceFile;
+    nh.getParam("/referenceFile", referenceFile); // 从参数服务器获取文件路径
+    defaultJointState_.resize(info_.actuatedDofNum); // 调整默认关节状态的尺寸
+    loadData::loadEigenMatrix(referenceFile, "defaultJointState", defaultJointState_); // 加载默认关节状态数据
 
-  // cmd_vel subscriber
-  auto cmdVelCallback = [this](const geometry_msgs::Twist::ConstPtr& msg) {
-    vector_t cmdVel = vector_t::Zero(6);
-    cmdVel[0] = msg->linear.x;
-    cmdVel[1] = msg->linear.y;
-    cmdVel[2] = msg->linear.z;
-    cmdVel[3] = msg->angular.z;
-    velCmdInBuf_.setBuffer(cmdVel);
-    velCmdOutBuf_.setBuffer(cmdVel);
-  };
-
-  velCmdSub_ = nh.subscribe<geometry_msgs::Twist>("/cmd_vel_filtered", 1, cmdVelCallback);
-
-  auto gait_type_callback = [this](const std_msgs::Int32::ConstPtr& msg) { gaitType_ = msg->data; };
-  gaitTypeSub_ = nh.subscribe<std_msgs::Int32>("/gait_type", 1, gait_type_callback);
-  std::string referenceFile;
-  nh.getParam("/referenceFile", referenceFile);
-  defaultJointState_.resize(info_.actuatedDofNum);
-  loadData::loadEigenMatrix(referenceFile, "defaultJointState", defaultJointState_);
-  inverseKinematics_.setParam(std::make_shared<PinocchioInterface>(pinocchioInterface_),
-                              std::make_shared<CentroidalModelInfo>(info_));
-
-  std::cout.setf(std::ios::fixed);
-  std::cout.precision(6);
+    inverseKinematics_.setParam(std::make_shared<PinocchioInterface>(pinocchioInterface_), // 设置逆运动学参数
+                                std::make_shared<CentroidalModelInfo>(info_));
+    std::cout.setf(std::ios::fixed); // 设置cout的格式为固定点表示
+    std::cout.precision(6); // 设置cout的输出精度为6位小数
 }
+
 
 /******************************************************************************************************/
 /******************************************************************************************************/
@@ -136,6 +135,9 @@ contact_flag_t SwitchedModelReferenceManager::getContactFlags(scalar_t time) con
 void SwitchedModelReferenceManager::modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState,
                                                      TargetTrajectories& targetTrajectories, ModeSchedule& modeSchedule)
 {
+  auto className = abi::__cxa_demangle(typeid(this).name(), nullptr, nullptr, nullptr);
+  std::cout << "\n#######################\n"
+            << "\n###### : modifyReferences conduct in: " << className<<std::endl;
   if (targetTrajectories.size() == 1)
   {
     targetTrajectories.timeTrajectory.push_back(finalTime);
